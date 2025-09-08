@@ -1,5 +1,7 @@
 ﻿using ContractManager.Application.Features.Contrats.Commands.ArchiveContrat;
 using ContractManager.Application.Features.Contrats.Commands.CreateContrat;
+using ContractManager.Application.Features.Contrats.Commands.ApproveContrat;
+using ContractManager.Application.Features.Contrats.Commands.RejectContrat;
 using ContractManager.Application.Features.Contrats.Queries.GetContractsForValidation;
 using ContractManager.Application.Features.Contrats.Queries.GetContratDetail;
 using ContractManager.Application.Features.Contrats.Queries.GetContratList;
@@ -48,13 +50,33 @@ public class ContratsController : ControllerBase
         var contratId = await _mediator.Send(command);
         return CreatedAtAction(nameof(Get), new { id = contratId }, command);
     }
+
+    // NEW: Direct approval endpoint
+    [HttpPost("{id}/approve")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> Approve(int id, [FromBody] string commentaire = "")
+    {
+        var command = new ApproveContratCommand { ContratId = id, Commentaire = commentaire };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    // NEW: Direct rejection endpoint  
+    [HttpPost("{id}/reject")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> Reject(int id, [FromBody] string commentaire = "")
+    {
+        var command = new RejectContratCommand { ContratId = id, Commentaire = commentaire };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
     [HttpPost("{id}/archive")]
     [Authorize(Roles = "Admin, RH")]
     public async Task<IActionResult> Archive(int id)
     {
         var command = new ArchiveContratCommand { ContratId = id };
         await _mediator.Send(command);
-        return NoContent(); // 204 No Content est une bonne réponse pour une action réussie.
+        return NoContent();
     }
-
 }

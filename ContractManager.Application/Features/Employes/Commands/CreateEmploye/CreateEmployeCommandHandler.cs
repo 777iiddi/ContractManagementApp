@@ -20,8 +20,9 @@ public class CreateEmployeCommandHandler : IRequestHandler<CreateEmployeCommand,
         {
             Matricule = request.Matricule,
             Nom = request.Nom,
-            Prenom = request.Prenom
-        };
+            Prenom = request.Prenom,
+            ManagerId = request.ManagerId
+        }; 
 
         var newEmploye = await _employeRepository.AddAsync(employe);
 
