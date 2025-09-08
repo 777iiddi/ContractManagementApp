@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ContractManager.Application": {
+      "commandName": "Project"
+    },
+    "Profil 1": {
+      "commandName": "Executable",
+      "executablePath": "D:\\ContractManagementApp\\API\\Program.cs"
+    }
+  }
+}

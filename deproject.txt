@@ -1,0 +1,66 @@
+serilog; la journalisation
+signalR; les notification
+react-toastify
+Scriban
+
+
+
+dotnet tool install --global dotnet-aspnet-codegenerator
+dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
+
+
+
+1. Base de l'API et Documentation (Swagger)
+Le cœur de votre API pour gérer les requêtes HTTP et documenter vos endpoints.
+
+Swashbuckle.AspNetCore : Essentiel pour générer la documentation OpenAPI (Swagger). Cela vous permettra de tester vos endpoints directement depuis le navigateur, comme vous l'avez demandé.
+
+2. Accès à la Base de Données (Entity Framework Core)
+Pour communiquer avec votre base de données et gérer les données contractuelles. EF Core est l'ORM (Object-Relational Mapper) standard dans l'écosystème .NET.
+
+
+Microsoft.EntityFrameworkCore : Le package principal d'Entity Framework Core.
+
+Microsoft.EntityFrameworkCore.Design : Requis pour les outils de conception, notamment les migrations de base de données.
+
+Microsoft.EntityFrameworkCore.Tools : Fournit les commandes dotnet-ef pour gérer les migrations (créer et mettre à jour le schéma de votre base de données).
+
+Choisissez ensuite le package correspondant à votre base de données :
+
+Microsoft.EntityFrameworkCore.SqlServer : Si vous utilisez SQL Server.
+
+Npgsql.EntityFrameworkCore.PostgreSQL : Si vous utilisez PostgreSQL.
+
+Pomelo.EntityFrameworkCore.MySql : Si vous utilisez MySQL.
+
+3. Sécurité et Gestion des Accès
+Pour implémenter la fonctionnalité "Sécurité & traçabilité" et la gestion des droits par profil.
+
+
+Microsoft.AspNetCore.Authentication.JwtBearer : Pour sécuriser votre API en utilisant des tokens JWT (JSON Web Tokens). C'est l'approche standard pour protéger les API REST.
+
+System.IdentityModel.Tokens.Jwt : Utile pour la création et la validation manuelle des tokens si nécessaire.
+
+4. Workflows de Validation
+Votre application nécessite des circuits de validation pour les contrats et avenants.
+
+
+Elsa.Server.Api : Elsa est une bibliothèque de workflow open-source très puissante pour .NET. Elle est parfaite pour modéliser des processus de validation complexes (N+1, RH, Juridique) comme décrit dans le cahier des charges.
+
+Elsa.Workflows.Core : Le moteur principal d'Elsa.
+
+5. Génération des Documents Contractuels
+Pour créer des contrats et des avenants à partir de modèles avec des variables dynamiques.
+
+
+QuestPDF : Une excellente bibliothèque open-source pour générer des documents PDF de manière programmatique. Idéale pour créer les contrats finaux.
+
+Scriban : Un moteur de template rapide et puissant. Vous l'utiliserez pour remplir vos modèles de documents (par exemple, un modèle HTML) avec les données de l'employé (nom, salaire, etc.) avant de les convertir en PDF.
+
+6. Notifications et Tâches de Fond
+Pour gérer les alertes sur les échéances (fin de contrat, période d'essai) et envoyer des notifications par email.
+
+
+Hangfire.AspNetCore : Une solution robuste pour exécuter des tâches en arrière-plan (par exemple, "vérifier chaque jour les contrats arrivant à échéance").
+
+MailKit : La bibliothèque de référence pour envoyer des emails en .NET. Plus moderne et fiable que l'ancien SmtpClient.
