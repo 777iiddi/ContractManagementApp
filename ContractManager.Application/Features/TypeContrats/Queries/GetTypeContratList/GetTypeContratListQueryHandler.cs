@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ContractManager.Application.Features.TypeContrats.Queries.GetTypeContratList;
 
-public class GetTypeContratListQueryHandler : IRequestHandler<GetTypeContratListQuery, List<TypeContratDto>>
+public class GetTypeContratListQueryHandler : IRequestHandler<GetTypeContratListQuery, List<TypeContratListDto>>
 {
     private readonly ITypeContratRepository _typeContratRepository;
 
@@ -17,13 +17,17 @@ public class GetTypeContratListQueryHandler : IRequestHandler<GetTypeContratList
         _typeContratRepository = typeContratRepository;
     }
 
-    public async Task<List<TypeContratDto>> Handle(GetTypeContratListQuery request, CancellationToken cancellationToken)
+    public async Task<List<TypeContratListDto>> Handle(GetTypeContratListQuery request, CancellationToken cancellationToken)
     {
-        var typeContrats = await _typeContratRepository.GetAllAsync(); // Assurez-vous que GetAllAsync existe sur votre ITypeContratRepository
-        return typeContrats.Select(tc => new TypeContratDto
+        var typeContrats = await _typeContratRepository.GetAllWithContractsCountAsync(request.EstActif);
+
+        return typeContrats.Select(tc => new TypeContratListDto
         {
             Id = tc.Id,
-            Nom = tc.Nom
+            Nom = tc.Nom,
+            Description = tc.Description,
+            EstActif = tc.EstActif,
+            NombreContrats = tc.Contrats?.Count ?? 0
         }).ToList();
     }
 }

@@ -1,30 +1,57 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Importation des pages et composants
+// --- Pages ---
+import TypeContratsPage from './pages/TypeContratPage';
+import NewTypeContratPage from './pages/NewTypeContratPage';
 import LoginPage from './pages/LoginPage';
-import ProtectedRoute from './components/ProtectedRoute';
 import DashboardPage from './pages/DashboardPage';
 import ManagerDashboardPage from './pages/ManagerDashboardPage';
 import NewContractPage from './pages/NewContractPage';
 import ContractDetailPage from './pages/ContractDetailPage';
 import AdminPage from './pages/AdminPage';
-import NewEmployeePage from './pages/NewEmployeePage'; // 1. Importer la nouvelle page
-import ModelesPage from './pages/ModelesPage';
-import ModeleDetailPage from './pages/ModeleDetailPage';
+ // Importer la nouvelle page
 
-// Ce composant est la première page vue après la connexion.
-// Son seul rôle est de rediriger vers le bon tableau de bord.
+// --- Composants ---
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Le composant Layout gère la structure visuelle et la navigation
+function Layout() {
+    const { isAuthenticated, logout, userRole } = useAuth();
+
+    if (!isAuthenticated) {
+        return <Outlet />; // Affiche LoginPage ou autre route publique
+    }
+
+    return (
+        <>
+            <header className="main-header">
+                <nav className="main-nav">
+                    <Link to="/">Accueil</Link>
+                    {userRole === 'RH' && <Link to="/dashboard-rh">Tableau de Bord RH</Link>}
+                    {userRole === 'Manager' && <Link to="/dashboard-manager">Tableau de Bord Manager</Link>}
+                    {userRole === 'Admin' && <Link to="/admin">Administration</Link>}
+                    
+                    {/* AJOUT : Lien vers la gestion des types de contrat */}
+                    {(userRole === 'Admin' || userRole === 'Manager') && (
+                        <Link to="/types-contrat">Gérer les Types</Link>
+                    )}
+                </nav>
+                <button onClick={logout} className="button-logout">Déconnexion</button>
+            </header>
+            <main className="main-content">
+                <Outlet /> {/* C'est ici que les pages protégées seront affichées */}
+            </main>
+        </>
+    );
+}
+
+// Le composant HomePage gère la redirection après la connexion
 function HomePage() {
     const { userRole } = useAuth();
-
-    // CORRECTION : On attend que le rôle soit chargé avant de rediriger.
-    if (!userRole) {
-        // Affiche un message de chargement pendant que le rôle est récupéré.
-        return <div>Chargement de votre session...</div>;
-    }
 
     if (userRole === 'Admin') {
         return <Navigate to="/admin" replace />;
@@ -32,68 +59,31 @@ function HomePage() {
     if (userRole === 'Manager') {
         return <Navigate to="/dashboard-manager" replace />;
     }
-    
-    // Par défaut (pour RH), on redirige vers le tableau de bord principal.
+    // Par défaut, ou si le rôle est RH
     return <Navigate to="/dashboard-rh" replace />;
 }
 
 
-// Ce composant gère la structure de la page pour les utilisateurs connectés.
-function Layout() {
-    const { isAuthenticated, logout, userRole } = useAuth();
-    return (
-        <>
-            {isAuthenticated && (
-                <nav>
-                    <Link to="/">Tableau de bord</Link>
-                    {(userRole === 'RH' || userRole === 'Admin') && (
-                        <> | <Link to="/contracts/new">Nouveau Contrat</Link>
-                        |   <Link to="/modeles">Gérer les Modèles</Link></>
-                    )}
-                    {/* 2. AJOUT : Lien pour les Managers */}
-                    {userRole === 'Manager' && (
-                        <> | <Link to="/employees/new">Nouvel Employé</Link></>
-                    )}
-                    {userRole === 'Admin' && (
-                        <> | <Link to="/admin">Administration</Link></>
-                    )}
-                    <button onClick={logout} style={{ marginLeft: '20px' }}>Déconnexion</button>
-                </nav>
-            )}
-            <main>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/dashboard-rh" element={<DashboardPage />} />
-                    <Route path="/dashboard-manager" element={<ManagerDashboardPage />} />
-                    <Route path="/contracts/new" element={<NewContractPage />} />
-                    <Route path="/contracts/:contractId" element={<ContractDetailPage />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="/employees/new" element={<NewEmployeePage />} />
-                    <Route path="*" element={<Navigate to="/" />} />
-                    <Route path="/modeles/new" element={<ModeleDetailPage />} />
-                    <Route path="/modeles/:modeleId" element={<ModeleDetailPage />} />
-                    <Route path="/modeles" element={<ModelesPage />} />
-                </Routes>
-            </main>
-        </>
-    );
-}
-
-
-// Le composant principal de l'application
 function App() {
     return (
         <AuthProvider>
             <Router>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                />
+                <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
                 <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/*" element={<Layout />} />
+                    <Route element={<Layout />}>
+                        <Route path="/login" element={<LoginPage />} />
+                        
+                        {/* Routes protégées */}
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="/" element={<HomePage />} />
+                            <Route path="/dashboard-rh" element={<DashboardPage />} />
+                            <Route path="/dashboard-manager" element={<ManagerDashboardPage />} />
+                            <Route path="/admin" element={<AdminPage />} />
+                            <Route path="/contracts/new" element={<NewContractPage />} />
+                            <Route path="/contracts/:contractId" element={<ContractDetailPage />} />
+                            <Route path="/type-contrats" element={<ProtectedRoute><TypeContratsPage /></ProtectedRoute>} />
+                            <Route path="/type-contrats/nouveau" element={<ProtectedRoute><NewTypeContratPage /></ProtectedRoute>} />
+                        </Route>
                     </Route>
                 </Routes>
             </Router>

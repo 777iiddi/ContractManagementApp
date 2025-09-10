@@ -4,4 +4,7 @@ using System.Collections.Generic;
 
 namespace ContractManager.Application.Features.TypeContrats.Queries.GetTypeContratList;
 
-public class GetTypeContratListQuery : IRequest<List<TypeContratDto>> { }
+public class GetTypeContratListQuery : IRequest<List<TypeContratListDto>>
+{
+    public bool? EstActif { get; set; }
+}

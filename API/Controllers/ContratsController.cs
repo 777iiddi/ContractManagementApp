@@ -64,12 +64,13 @@ public class ContratsController : ControllerBase
     // NEW: Direct rejection endpoint  
     [HttpPost("{id}/reject")]
     [Authorize(Roles = "Manager")]
-    public async Task<IActionResult> Reject(int id, [FromBody] string commentaire = "")
+    public async Task<IActionResult> RejectContract(int id)
     {
-        var command = new RejectContratCommand { ContratId = id, Commentaire = commentaire };
-        await _mediator.Send(command);
-        return NoContent();
+        // your existing logic
+        await _mediator.Send(new RejectContratCommand { ContratId = id });
+        return Ok(new { message = "Contrat rejeté avec succès" });
     }
+
 
     [HttpPost("{id}/archive")]
     [Authorize(Roles = "Admin, RH")]

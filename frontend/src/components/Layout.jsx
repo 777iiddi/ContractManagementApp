@@ -16,6 +16,7 @@ function Layout() {
                     <Link to="/">Tableau de bord</Link>
                     {(userRole === 'RH' || userRole === 'Admin') && (
                         <> | <Link to="/contracts/new">Nouveau Contrat</Link></>
+                        
                     )}
                     {userRole === 'Admin' && (
                         <> | <Link to="/admin">Administration</Link></>

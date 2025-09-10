@@ -11,42 +11,24 @@ namespace ContractManager.Application.Features.Contrats.Commands.ApproveContrat;
 public class ApproveContratCommandHandler : IRequestHandler<ApproveContratCommand, Unit>
 {
     private readonly IContratRepository _contratRepository;
-    private readonly IWorkflowRepository _workflowRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ApproveContratCommandHandler(
         IContratRepository contratRepository,
-        IWorkflowRepository workflowRepository,
         IHttpContextAccessor httpContextAccessor)
     {
         _contratRepository = contratRepository;
-        _workflowRepository = workflowRepository;
         _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Unit> Handle(ApproveContratCommand request, CancellationToken cancellationToken)
     {
+        // Récupérer le contrat
         var contrat = await _contratRepository.GetByIdAsync(request.ContratId);
         if (contrat == null)
             throw new Exception("Contrat non trouvé");
 
-        // Get current user ID
-        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userId = int.TryParse(userIdClaim, out var id) ? id : (int?)null;
-
-        // Create workflow if it doesn't exist
-        if (contrat.Workflow == null)
-        {
-            var workflow = new Workflow
-            {
-                ContratId = contrat.Id,
-                Statut = "Validé"
-            };
-            await _workflowRepository.AddAsync(workflow, cancellationToken);
-            contrat.Workflow = workflow;
-        }
-
-        // Update contract status
+        // Simplement mettre à jour le statut du contrat
         contrat.Statut = "Actif";
         await _contratRepository.UpdateAsync(contrat, cancellationToken);
 

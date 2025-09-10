@@ -1,21 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
+import api from '../services/api'; // Utilise notre service API configuré !
 import { toast } from 'react-toastify';
 
 export default function AdminPage() {
     const [users, setUsers] = useState([]);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('Manager');
+    const [loading, setLoading] = useState(true);
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        role: 'Manager',
+    });
 
-    // On utilise useCallback pour s'assurer que la fonction n'est pas recréée à chaque rendu
     const fetchUsers = useCallback(async () => {
         try {
-            const response = await api.get('/Auth');
+            const response = await api.get('/Auth'); // Appelle le bon endpoint GET
             setUsers(response.data);
         } catch (error) {
-            console.error("Erreur lors de la récupération des utilisateurs", error);
+            console.error("Erreur de récupération des utilisateurs:", error);
             toast.error("Impossible de charger la liste des utilisateurs.");
+        } finally {
+            setLoading(false);
         }
     }, []);
 
@@ -23,61 +27,77 @@ export default function AdminPage() {
         fetchUsers();
     }, [fetchUsers]);
 
-    const handleCreateUser = async (e) => {
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/Auth/register', { email, password, role });
-            toast.success('Utilisateur créé avec succès !');
-            setEmail('');
-            setPassword('');
-            // On appelle à nouveau fetchUsers pour rafraîchir la liste
-            await fetchUsers();
+            await api.post('/Auth/register', formData);
+            toast.success("Utilisateur créé avec succès !");
+            setFormData({ email: '', password: '', role: 'Manager' }); // Réinitialiser le formulaire
+            fetchUsers(); // Rafraîchir la liste
         } catch (error) {
-            console.error("Erreur lors de la création de l'utilisateur", error);
-            toast.error(error.response?.data?.message || "Erreur lors de la création.");
+            toast.error("Erreur lors de la création de l'utilisateur.");
         }
     };
 
     return (
-        <div>
+        <div className="container">
             <div className="page-header">
                 <h1>Panneau d'Administration</h1>
             </div>
 
-            <div className="form-container">
+            <div className="section card">
                 <h2>Créer un Nouvel Utilisateur</h2>
-                <form onSubmit={handleCreateUser} className="user-form">
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mot de passe" required />
-                    <select value={role} onChange={(e) => setRole(e.target.value)}>
-                        <option value="Manager">Manager</option>
-                        <option value="RH">RH</option>
-                        <option value="Admin">Admin</option>
-                    </select>
-                    <button type="submit">Créer l'utilisateur</button>
+                <form onSubmit={handleSubmit} className="user-form">
+                    <div className="form-group">
+                        <label htmlFor="email">Email</label>
+                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Mot de passe</label>
+                        <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="role">Rôle</label>
+                        <select id="role" name="role" value={formData.role} onChange={handleChange}>
+                            <option value="Manager">Manager</option>
+                            <option value="RH">RH</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" className="button">Créer l'utilisateur</button>
                 </form>
             </div>
 
-            <div className="table-container" style={{ marginTop: '2rem' }}>
+            <div className="section">
                 <h2>Liste des Utilisateurs</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>Rôle</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(user => (
-                            <tr key={user.id}>
-                                <td>{user.id}</td>
-                                <td>{user.email}</td>
-                                <td>{user.role}</td>
+                <div className="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan="3">Chargement...</td></tr>
+                            ) : (
+                                users.map(user => (
+                                    <tr key={user.id}>
+                                        <td>{user.id}</td>
+                                        <td>{user.email}</td>
+                                        <td>{user.role}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

@@ -54,6 +54,8 @@ builder.Services.AddScoped<ITypeContratRepository, TypeContratRepository>();
 builder.Services.AddScoped<ITypeContratRepository, TypeContratRepository>();
 builder.Services.AddScoped<IModeleDocumentRepository, ModeleDocumentRepository>();
 builder.Services.AddScoped<IDocumentGenerator, DocumentGenerator>();
+builder.Services.AddScoped<ITypeContratRepository, TypeContratRepository>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddMediatR(Assembly.Load("ContractManager.Application"));
