@@ -11,7 +11,9 @@ public class ContractManagerDbContext : DbContext
     public ContractManagerDbContext(DbContextOptions<ContractManagerDbContext> options) : base(options)
     {
     }
-
+    public ContractManagerDbContext()
+    {
+    }
     // --- DbSets ---
     // Each DbSet<T> property tells Entity Framework that we want a table for the entity 'T'.
     // The name of the property will be the name of the table in the database.
@@ -35,7 +37,8 @@ public class ContractManagerDbContext : DbContext
     public DbSet<EtapeWorkflow> EtapeWorkflows { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-
+    public DbSet<ChampObligatoire> ChampsObligatoires { get; set; }
+    public DbSet<RegleTypeContrat> ReglesTypeContrats { get; set; }
     // This method is called by Entity Framework when it creates the database model.
     // It's a good place to add specific configurations or seed initial data.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,6 +50,61 @@ public class ContractManagerDbContext : DbContext
             new TypeContrat { Id = 3, Nom = "Stage" },
             new TypeContrat { Id = 4, Nom = "Intérim" }
         );
+        modelBuilder.Entity<ChampObligatoire>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.NomChamp).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.TypeChamp).IsRequired().HasMaxLength(50);
+
+            entity.HasOne(e => e.TypeContrat)
+                .WithMany(tc => tc.ChampsObligatoires)
+                .HasForeignKey(e => e.TypeContratId);
+
+            entity.HasOne(e => e.Pays)
+                .WithMany(p => p.ChampsObligatoires)
+                .HasForeignKey(e => e.PaysId);
+        });
+
+        // Configuration RegleTypeContrat
+        modelBuilder.Entity<RegleTypeContrat>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(e => e.TypeContrat)
+                .WithMany(tc => tc.ReglesLegales)
+                .HasForeignKey(e => e.TypeContratId);
+
+            entity.HasOne(e => e.Pays)
+                .WithMany(p => p.ReglesLegales)
+                .HasForeignKey(e => e.PaysId);
+        });
+
+        // Configuration TypeContrat
+        modelBuilder.Entity<TypeContrat>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nom).IsRequired().HasMaxLength(100);
+
+            entity.HasOne(e => e.ModeleDocument)
+                .WithMany()
+                .HasForeignKey(e => e.ModeleDocumentId);
+        });
+        modelBuilder.Entity<Societe>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Nom).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Adresse).HasMaxLength(500);
+            entity.Property(e => e.CodePostal).HasMaxLength(10);
+            entity.Property(e => e.Ville).HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Telephone).HasMaxLength(20);
+
+            // Relation avec Pays
+            entity.HasOne(e => e.Pays)
+                .WithMany(p => p.Societes)
+                .HasForeignKey(e => e.PaysId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
 
         // This ensures that any configuration from the base class is also applied.
         base.OnModelCreating(modelBuilder);

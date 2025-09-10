@@ -23,8 +23,11 @@ namespace ContractManager.Infrastructure.Persistence.Repositories
             return await _dbContext.Contrats
                 .Include(c => c.Employe)
                 .Include(c => c.TypeContrat)
+                .Include(c => c.Workflow) 
+                    .ThenInclude(w => w.Etapes)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+
 
         public async Task<List<Contrat>> GetAllContractsAsync()
         {

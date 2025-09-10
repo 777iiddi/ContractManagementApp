@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace ContractManager.Infrastructure.Persistence.Repositories;
 
-// L'implémentation concrète du contrat, qui utilise le DbContext.
 public class SocieteRepository : ISocieteRepository
 {
     private readonly ContractManagerDbContext _dbContext;
@@ -18,20 +17,42 @@ public class SocieteRepository : ISocieteRepository
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<Societe>> GetAllAsync()
+    public async Task<Societe?> GetByIdAsync(int id)
     {
-        return await _dbContext.Societes.ToListAsync();
+        return await _dbContext.Societes
+            .Include(s => s.Pays)
+            .FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    // AJOUT : Implémentation de la méthode pour ajouter une société.
+    public async Task<List<Societe>> GetAllAsync()
+    {
+        return await _dbContext.Societes
+            .Include(s => s.Pays)
+            .OrderBy(s => s.Nom)
+            .ToListAsync();
+    }
+
     public async Task<Societe> AddAsync(Societe societe, CancellationToken cancellationToken)
     {
         await _dbContext.Societes.AddAsync(societe, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return societe;
     }
-    public async Task<Societe?> GetByIdAsync(int id) // AJOUT
+
+    public async Task<Societe> UpdateAsync(Societe societe, CancellationToken cancellationToken)
     {
-        return await _dbContext.Societes.FindAsync(id);
+        _dbContext.Entry(societe).State = EntityState.Modified;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return societe;
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var societe = await GetByIdAsync(id);
+        if (societe != null)
+        {
+            _dbContext.Societes.Remove(societe);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
